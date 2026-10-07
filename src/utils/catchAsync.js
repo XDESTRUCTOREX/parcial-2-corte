@@ -1,0 +1,2 @@
+// Wrapper para capturar errores de promesas asíncronas y enviarlos al errorHandler 
+const catchAsync = (fn) => { return (req, res, next) => { Promise.resolve(fn(req, res, next)).catch(next); }; }; module.exports = catchAsync;
