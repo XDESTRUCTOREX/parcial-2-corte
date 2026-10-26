@@ -1,6 +1,6 @@
 # Contratos de la API REST
 
-> Estado de esta documentación: describe el comportamiento observado en el código de la rama `main`. La API actual usa Express y MongoDB/Mongoose.
+> Estado de esta documentación: describe el comportamiento observado en el código de la rama `develop`. La API actual usa Express y MongoDB/Mongoose.
 
 ## 1. Información general
 
@@ -11,7 +11,7 @@
 - **Persistencia:** MongoDB mediante Mongoose
 - **Autenticación:** actualmente no hay middleware JWT ni rutas de autenticación montadas en `src/app.js`. Los endpoints documentados no requieren token. No debe enviarse un JWT como si la API ya lo validara; implementar autenticación sería un cambio funcional separado.
 
-Todas las respuestas de la API, excepto la respuesta de eliminación `204 No Content), se expresan como JSON.
+Todas las respuestas de la API se expresan como JSON, excepto la eliminación correcta (`204 No Content`), que no devuelve cuerpo.
 
 ## 2. Configuración y ejecución
 
@@ -312,4 +312,4 @@ curl -X DELETE "http://localhost:3000/api/v1/products/65a000000000000000000001"
 
 ## 8. Verificación de la documentación
 
-Antes de dar por cerrada esta tarea, verificar manualmente o con pruebas que los endpoints y códigos descritos coincidan con la aplicación ejecutada. Esta documentación se redactó a partir de `src/app.js`, `src/routes/productRoutes.js`, `src/controllers/productController.js`, `src/services/productService.js`, `src/models/Product.js` y `src/middlewares/errorHandler.js`.
+Antes de dar por cerrada esta tarea, verificar manualmente o con pruebas que los endpoints y códigos descritos coincidan con la aplicación ejecutada. Esta documentación se redactó a partir de `src/app.js`, `src/routes/productRoutes.js`, `src/controllers/productController.js`, `src/services/productService.js`, `src/models/Product.js` y `src/middlewares/errorHandler.js` en `develop`. La verificación de ejecución queda pendiente hasta disponer de un entorno con las variables configuradas.
