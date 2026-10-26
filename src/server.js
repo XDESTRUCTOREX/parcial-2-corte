@@ -1,4 +1,4 @@
-﻿const app = require("./app");
+const app = require("./app");
 const connectDB = require("./config/database");
 const logger = require("./utils/logger");
 

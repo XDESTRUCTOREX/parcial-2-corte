@@ -40,7 +40,7 @@ npm install
 npm run dev
 ```
 
-El servidor espera que la conexión a MongoDB se establezca antes de empezar a escuchar. El script `npm start` fija `NODE_ENV=production`; el script `npm test` intenta ejecutar Jest.
+El servidor espera que la conexión a MongoDB se establezca antes de empezar a escuchar. El script `npm start` fija `NODE_ENV=production`; el script `npm test` ejecuta la suite de integración de Jest contra una instancia efímera de MongoDB en memoria (ver `docs/TESTING.md`).
 
 ## 3. Convenciones de respuesta
 
@@ -67,15 +67,15 @@ El ejemplo ilustra la estructura; los identificadores y fechas reales los genera
 
 ### Errores
 
-El formato depende de la condición detectada por el middleware central:
+El middleware central emite un contrato uniforme: `status: "fail"` para todos los errores del cliente (4xx) y `status: "error"` reservado para fallas del servidor (5xx).
 
-- Validación de Mongoose: `400`, `status: "fail"`, mensaje y lista `errors`.
-- ID con formato inválido: `400`, `status: "fail"`.
-- Recurso inexistente al consultar por ID, actualizar o eliminar: `404`, `status: "error"`.
+- Validación de Mongoose: `400`, `status: "fail"`, mensaje `"Datos de entrada inválidos"` y lista `errors` con el detalle por campo.
+- ID con formato inválido: `400`, `status: "fail"`, mensaje `"ID inválido: <valor>"`.
+- Campo con tipo incorrecto (p. ej. `price` no numérico): `400`, `status: "fail"`, mensaje `"Datos de entrada inválidos"` y detalle del campo en `errors`.
+- Cuerpo JSON malformado: `400`, `status: "fail"`, mensaje `"JSON malformado en el cuerpo de la petición"`.
+- Recurso inexistente al consultar por ID, actualizar o eliminar: `404`, `status: "fail"`, mensaje `"Recurso no encontrado"`.
 - Ruta no registrada: `404`, `status: "fail"`.
 - Error inesperado: normalmente `500`, `status: "error"`. En modo `development` se muestra el mensaje original; en otros modos se devuelve un mensaje genérico.
-
-No se ha implementado un contrato explícito para errores de clave duplicada ni una respuesta uniforme para todos los errores. Si se requiere consistencia estricta, debe abordarse como mejora de código.
 
 ## 4. Endpoints
 
@@ -302,6 +302,8 @@ curl -X DELETE "http://localhost:3000/api/v1/products/65a000000000000000000001"
 | `404 Not Found` | Ruta inexistente o producto no encontrado |
 | `500 Internal Server Error` | Error inesperado del servidor |
 
+Todos los errores del cliente (4xx) comparten el envelope `{ "status": "fail", "message": ... }`, con la lista `errors` cuando corresponde; la etiqueta `"error"` solo aparece en respuestas 5xx. La suite automatizada verifica este contrato (ver `docs/TESTING.md`).
+
 ## 7. Seguridad y limitaciones actuales
 
 - No hay autenticación JWT, inicio de sesión ni autorización implementados en las rutas actuales.
@@ -312,4 +314,4 @@ curl -X DELETE "http://localhost:3000/api/v1/products/65a000000000000000000001"
 
 ## 8. Verificación de la documentación
 
-Antes de dar por cerrada esta tarea, verificar manualmente o con pruebas que los endpoints y códigos descritos coincidan con la aplicación ejecutada. Esta documentación se redactó a partir de `src/app.js`, `src/routes/productRoutes.js`, `src/controllers/productController.js`, `src/services/productService.js`, `src/models/Product.js` y `src/middlewares/errorHandler.js` en `develop`. La verificación de ejecución queda pendiente hasta disponer de un entorno con las variables configuradas.
+Esta documentación describe el comportamiento implementado en `src/app.js`, `src/routes/productRoutes.js`, `src/controllers/productController.js`, `src/services/productService.js`, `src/models/Product.js` y `src/middlewares/errorHandler.js`. El contrato de endpoints, códigos HTTP y errores descrito aquí está verificado por la suite automatizada `test/app.test.js` (23 pruebas de integración sobre MongoDB en memoria), que cubre éxito, recurso inexistente y entradas inválidas para cada operación. Consulta `docs/TESTING.md` para ejecutarla en local o en CI.
