@@ -36,5 +36,8 @@ jobs:
             node --check "$file"
           done < <(find src test -type f -name '*.js' -print)
 
+      - name: Validate JMeter plan XML
+        run: python3 -c "import xml.etree.ElementTree as ET; ET.parse('jmeter/inventario-load-test.jmx')"
+
       - name: Run tests
         run: npm test
