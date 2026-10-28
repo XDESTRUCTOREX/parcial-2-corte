@@ -1,4 +1,5 @@
-﻿const express = require("express");
+const express = require("express");
+const path = require("path");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cors = require("cors");
@@ -12,13 +13,20 @@ require("dotenv").config({
 const app = express();
 
 // Middlewares globales
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  })
+);
 app.use(cors());
 app.use(express.json());
 
 if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
 }
+
+// Servir cliente estático frontend
+app.use(express.static(path.join(__dirname, "../frontend")));
 
 // Ruta de estado
 app.get("/health", (req, res) => {

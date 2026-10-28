@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario de Productos - UNIPUTUMAYO</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <h1 data-testid="app-title">Inventario de Productos</h1>
+        <span class="subtitle">UNIPUTUMAYO - Gestión de Catálogo</span>
+      </div>
+      <div class="header-actions">
+        <div class="server-status" id="server-status" data-testid="server-status">
+          <span class="status-dot" id="status-dot"></span>
+          <span class="status-text" id="status-text">Verificando API...</span>
+        </div>
+        <button id="btn-check-health" class="btn btn-secondary btn-sm" data-testid="btn-check-health">
+          Verificar Salud API
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Configuración de API URL -->
+    <section class="config-bar" data-testid="config-section">
+      <div class="config-field">
+        <label for="api-base-url">API Base URL:</label>
+        <input type="text" id="api-base-url" data-testid="api-base-url" placeholder="http://localhost:3000">
+        <button id="btn-save-api-url" class="btn btn-sm btn-outline" data-testid="btn-save-api-url">Guardar URL</button>
+      </div>
+    </section>
+
+    <!-- Banner global de notificaciones -->
+    <div id="alert-banner" class="alert-banner hidden" data-testid="alert-banner" role="alert">
+      <span id="alert-message" class="alert-message" data-testid="alert-message"></span>
+      <button id="btn-dismiss-alert" class="btn-dismiss" data-testid="btn-dismiss-alert" aria-label="Cerrar notificación">&times;</button>
+    </div>
+
+    <div class="content-grid">
+      <!-- Columna izquierda: Formulario de Creación / Edición -->
+      <section class="card form-card" data-testid="product-form-section">
+        <div class="card-header">
+          <h2 id="form-title" data-testid="form-title">Registrar Producto</h2>
+          <span class="badge" id="form-badge">Modo Creación</span>
+        </div>
+        <div class="card-body">
+          <form id="product-form" data-testid="product-form" novalidate>
+            <input type="hidden" id="product-id" data-testid="product-id">
+
+            <div class="form-group">
+              <label for="product-name">Nombre del Producto <span class="required">*</span></label>
+              <input type="text" id="product-name" name="name" data-testid="input-name" placeholder="Ej: Teclado Mecánico" required>
+              <div class="form-error" id="error-name" data-testid="error-name"></div>
+            </div>
+
+            <div class="form-group">
+              <label for="product-category">Categoría <span class="required">*</span></label>
+              <select id="product-category" name="category" data-testid="input-category" required>
+                <option value="">-- Seleccionar categoría --</option>
+                <option value="Periféricos">Periféricos</option>
+                <option value="Computadores">Computadores</option>
+                <option value="Accesorios">Accesorios</option>
+                <option value="Audio">Audio</option>
+                <option value="Oficina">Oficina</option>
+              </select>
+              <div class="form-error" id="error-category" data-testid="error-category"></div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-half">
+                <label for="product-price">Precio (COP) <span class="required">*</span></label>
+                <input type="number" id="product-price" name="price" data-testid="input-price" min="0" step="100" placeholder="0" required>
+                <div class="form-error" id="error-price" data-testid="error-price"></div>
+              </div>
+
+              <div class="form-group col-half">
+                <label for="product-stock">Stock Disponible</label>
+                <input type="number" id="product-stock" name="stock" data-testid="input-stock" min="0" step="1" value="0" placeholder="0">
+                <div class="form-error" id="error-stock" data-testid="error-stock"></div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" id="btn-submit-product" class="btn btn-primary" data-testid="btn-submit">
+                <span class="btn-spinner hidden" id="submit-spinner"></span>
+                <span id="submit-btn-text">Guardar Producto</span>
+              </button>
+              <button type="button" id="btn-cancel-edit" class="btn btn-outline hidden" data-testid="btn-cancel">
+                Cancelar Edición
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Columna derecha: Catálogo y Listado -->
+      <section class="card catalog-card" data-testid="catalog-section">
+        <div class="card-header catalog-header">
+          <div>
+            <h2 data-testid="catalog-title">Catálogo de Productos</h2>
+            <span class="counter" id="products-count" data-testid="products-count">Total: 0 productos</span>
+          </div>
+          <div class="catalog-controls">
+            <select id="filter-category" data-testid="filter-category" aria-label="Filtrar por categoría">
+              <option value="">Todas las categorías</option>
+              <option value="Periféricos">Periféricos</option>
+              <option value="Computadores">Computadores</option>
+              <option value="Accesorios">Accesorios</option>
+              <option value="Audio">Audio</option>
+              <option value="Oficina">Oficina</option>
+            </select>
+            <button id="btn-refresh-catalog" class="btn btn-secondary btn-icon" data-testid="btn-refresh" title="Recargar catálogo">
+              &#x21bb; Actualizar
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <!-- Spinner de carga -->
+          <div id="catalog-loading" class="loading-state hidden" data-testid="catalog-loading">
+            <div class="spinner"></div>
+            <p>Cargando productos desde la API...</p>
+          </div>
+
+          <!-- Estado vacío -->
+          <div id="catalog-empty" class="empty-state hidden" data-testid="catalog-empty">
+            <p>No se encontraron productos registrados en el inventario.</p>
+          </div>
+
+          <!-- Tabla de productos -->
+          <div class="table-responsive" id="table-container">
+            <table class="products-table" data-testid="products-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Categoría</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="products-tbody" data-testid="products-tbody">
+                <!-- Se llena dinámicamente con JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal para Detalle de Producto -->
+    <div id="detail-modal" class="modal hidden" data-testid="detail-modal" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-title" data-testid="modal-title">Detalle del Producto</h3>
+          <button id="btn-close-modal" class="modal-close" data-testid="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body" data-testid="modal-body">
+          <!-- Detalle dinámico -->
+        </div>
+        <div class="modal-footer">
+          <button id="btn-modal-dismiss" class="btn btn-secondary" data-testid="btn-modal-dismiss">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-footer">
+    <p>&copy; 2026 UNIPUTUMAYO - Pruebas de Software e Implementación</p>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
+
