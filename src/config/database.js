@@ -12,6 +12,15 @@ const connectDB = async () => {
     logger.info(`Conectado a MongoDB Atlas exitosamente (base de datos: ${databaseName})`);
   } catch (error) {
     logger.error("Error fatal conectando a MongoDB Atlas", error);
+    if (error.reason?.servers) {
+      for (const [host, server] of error.reason.servers) {
+        console.log({
+          host,
+          type: server.type,
+          error: server.error?.message
+        });
+      }
+    }
     process.exit(1);
   }
 };

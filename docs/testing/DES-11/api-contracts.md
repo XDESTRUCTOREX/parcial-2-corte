@@ -315,3 +315,4 @@ Host: localhost:3000
 #### Respuesta Exitosa (`204 No Content`):
 - Encabezados: `Status: 204 No Content`
 - Cuerpo: *(vacío)*
+

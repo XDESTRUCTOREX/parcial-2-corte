@@ -124,3 +124,4 @@ node scripts/run-newman.js
 3. **Manejo de rutas con espacios en Windows para Newman:**
    - *Causa:* Al invocar `newman` mediante `child_process.spawn` en Windows sobre una ruta con espacios (`Kelly Tatiana`), los argumentos eran divididos erróneamente.
    - *Solución:* Se configuró el script `scripts/run-newman.js` con rutas relativas estables basadas en el directorio de trabajo del repositorio, garantizando ejecución sin fallos.
+

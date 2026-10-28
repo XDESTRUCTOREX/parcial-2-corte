@@ -123,3 +123,4 @@ En la estrategia **Big Bang**, todos los componentes del sistema se ensamblan si
 | **Dependencia de Base de Datos** | Ninguna (Mockeada) | Requerida (En memoria) | Requerida (En memoria o Atlas) |
 | **Facilidad para aislar fallos** | Alta (Capa web y transporte) | Alta (Persistencia y lógica) | Baja (Múltiples capas involucradas) |
 | **Cobertura de integración E2E** | Parcial (Sin persistencia real) | Parcial (Sin capa HTTP) | Total (Flujo completo del cliente) |
+
