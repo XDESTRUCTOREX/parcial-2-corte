@@ -1,9 +1,10 @@
-﻿const express = require("express");
+const express = require("express");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cors = require("cors");
 const errorHandler = require("./middlewares/errorHandler");
 const productRoutes = require("./routes/productRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 require("dotenv").config({
   path: `.env.${process.env.NODE_ENV || "development"}`,
@@ -30,6 +31,7 @@ app.get("/health", (req, res) => {
 
 // Rutas principales
 app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/orders", orderRoutes);
 
 // Manejo de rutas 404
 app.all("*", (req, res) => {
