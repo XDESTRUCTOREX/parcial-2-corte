@@ -1,0 +1,6453 @@
+{
+  "collection": {
+    "_": {
+      "postman_id": "c1f7b8e2-9b51-4f81-8b73-fa92b515a0c3"
+    },
+    "item": [
+      {
+        "id": "7ee7d33e-b8b5-42a1-9ded-8b3cf6ce5038",
+        "name": "01 - Health Check",
+        "request": {
+          "url": {
+            "path": [
+              "health"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "2e201be6-2081-41fc-8488-37aaa00dabdd",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 200 OK', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test('Content-Type es application/json', function () {",
+                "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                "});",
+                "",
+                "pm.test('Respuesta tiene estructura válida de health check', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json).to.be.an('object');",
+                "    pm.expect(json.status).to.eql('success');",
+                "    pm.expect(json.message).to.eql('Servidor de Inventario activo');",
+                "});"
+              ],
+              "_lastExecutionId": "052dcf9a-0f71-440c-893e-f685cb3cb1ed"
+            }
+          }
+        ]
+      },
+      {
+        "id": "a3e5b366-82e2-4fb2-9be3-1480267eabfa",
+        "name": "02 - Crear Producto Exitoso (201)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Teclado Mecánico RGB\",\n  \"category\": \"{{productCategory}}\",\n  \"price\": 250000,\n  \"stock\": 15\n}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "431e59c8-855a-476f-99d1-a60b9556c374",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 201 Created', function () {",
+                "    pm.response.to.have.status(201);",
+                "});",
+                "",
+                "pm.test('Content-Type es application/json', function () {",
+                "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                "});",
+                "",
+                "pm.test('Contrato de respuesta y datos del producto creado', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json).to.be.an('object');",
+                "    pm.expect(json.status).to.eql('success');",
+                "    pm.expect(json.data).to.be.an('object');",
+                "    pm.expect(json.data._id).to.be.a('string');",
+                "    pm.expect(json.data.name).to.eql('Teclado Mecánico RGB');",
+                "    pm.expect(json.data.category).to.eql(pm.collectionVariables.get('productCategory') || 'Periféricos');",
+                "    pm.expect(json.data.price).to.eql(250000);",
+                "    pm.expect(json.data.stock).to.eql(15);",
+                "    pm.expect(json.data.createdAt).to.be.a('string');",
+                "    pm.expect(json.data.updatedAt).to.be.a('string');",
+                "",
+                "    // Guardar ID en variables de colección y entorno para peticiones siguientes",
+                "    pm.collectionVariables.set('created_product_id', json.data._id);",
+                "    pm.environment.set('created_product_id', json.data._id);",
+                "});"
+              ],
+              "_lastExecutionId": "1eb808fa-b7d7-49ac-bfaa-359a4ad13605"
+            }
+          }
+        ]
+      },
+      {
+        "id": "5f721854-a495-4c29-8efd-7a5cc0a831f8",
+        "name": "03 - Crear Producto - Error de Validación Campos Obligatorios (400)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"category\": \"Periféricos\"\n}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "5bda3b11-57ef-430f-b481-a0377a26c973",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 400 Bad Request', function () {",
+                "    pm.response.to.have.status(400);",
+                "});",
+                "",
+                "pm.test('Estructura de error por campos faltantes', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('fail');",
+                "    pm.expect(json.message).to.eql('Datos de entrada inválidos');",
+                "    pm.expect(json.errors).to.be.an('array');",
+                "    pm.expect(json.errors.length).to.be.at.least(2);",
+                "});"
+              ],
+              "_lastExecutionId": "1a673995-70d6-4200-81fc-e1a1411b2d5f"
+            }
+          }
+        ]
+      },
+      {
+        "id": "5b0b3fc0-4030-4caa-b96e-6e9fd0436fa1",
+        "name": "04 - Crear Producto - Error Precio Negativo (400)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Mouse Invalido\",\n  \"category\": \"Periféricos\",\n  \"price\": -50000,\n  \"stock\": 10\n}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "7455d18d-37b1-4d7d-98d9-aa27840e945a",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 400 Bad Request', function () {",
+                "    pm.response.to.have.status(400);",
+                "});",
+                "",
+                "pm.test('Mensaje de validación de precio negativo', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('fail');",
+                "    pm.expect(json.message).to.eql('Datos de entrada inválidos');",
+                "    pm.expect(json.errors).to.include('El precio no puede ser negativo');",
+                "});"
+              ],
+              "_lastExecutionId": "45bce20c-753d-4139-8ee7-1f145bf8a73f"
+            }
+          }
+        ]
+      },
+      {
+        "id": "41a4f14f-3d0e-42d5-8cf8-615b913022ac",
+        "name": "05 - Listar Todos los Productos (200)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "601c2ed5-0aab-4642-b30c-23d7f13e2e65",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 200 OK', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test('Respuesta contiene lista y contador de resultados', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('success');",
+                "    pm.expect(json.results).to.be.a('number');",
+                "    pm.expect(json.results).to.be.at.least(1);",
+                "    pm.expect(json.data).to.be.an('array');",
+                "});"
+              ],
+              "_lastExecutionId": "42bbcecd-8fde-4463-a719-565078543ee4"
+            }
+          }
+        ]
+      },
+      {
+        "id": "bbf54b48-0e7c-452b-a275-aeb7749085fe",
+        "name": "06 - Listar Productos con Filtro de Categoría (200)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [
+              {
+                "key": "category",
+                "value": "{{productCategory}}"
+              }
+            ],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "f06ebf72-a2eb-423f-8131-0bafc9b2c198",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 200 OK', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test('Todos los elementos devueltos coinciden con la categoría solicitada', function () {",
+                "    const json = pm.response.json();",
+                "    const category = pm.collectionVariables.get('productCategory') || 'Periféricos';",
+                "    pm.expect(json.status).to.eql('success');",
+                "    pm.expect(json.data).to.be.an('array');",
+                "    json.data.forEach(function (p) {",
+                "        pm.expect(p.category).to.eql(category);",
+                "    });",
+                "});"
+              ],
+              "_lastExecutionId": "e6925a20-5de7-428b-a6f1-a78b1bd96567"
+            }
+          }
+        ]
+      },
+      {
+        "id": "5bcb71b8-00d8-48b7-8262-bb43b9253a8a",
+        "name": "07 - Consultar Producto por ID Exitoso (200)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "{{created_product_id}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "01aa4229-b5f9-405b-b171-9900cdbfbf2c",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 200 OK', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test('Objeto retornado coincide con el ID creado', function () {",
+                "    const json = pm.response.json();",
+                "    const expectedId = pm.collectionVariables.get('created_product_id');",
+                "    pm.expect(json.status).to.eql('success');",
+                "    pm.expect(json.data).to.be.an('object');",
+                "    pm.expect(json.data._id).to.eql(expectedId);",
+                "    pm.expect(json.data.name).to.eql('Teclado Mecánico RGB');",
+                "});"
+              ],
+              "_lastExecutionId": "d511d98f-c343-4ee2-bf7f-dccc855e1362"
+            }
+          }
+        ]
+      },
+      {
+        "id": "9460b4e1-fda3-4c27-ad22-a194891f63ec",
+        "name": "08 - Consultar Producto - Formato ID Inválido (400)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "formato-invalido-123"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "63d4176b-a534-4b79-842b-e467284583e2",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 400 Bad Request', function () {",
+                "    pm.response.to.have.status(400);",
+                "});",
+                "",
+                "pm.test('Mensaje de ID inválido en formato fail', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('fail');",
+                "    pm.expect(json.message).to.include('ID inválido: formato-invalido-123');",
+                "});"
+              ],
+              "_lastExecutionId": "89fdc099-f670-4901-affd-ce6e1d6aca78"
+            }
+          }
+        ]
+      },
+      {
+        "id": "fb2f6f05-f6a0-4c29-8519-408a8cb28b79",
+        "name": "09 - Consultar Producto - ID Inexistente (404)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "507f1f77bcf86cd799439011"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "ed070e14-98f8-4db4-9464-7f54a543344f",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 404 Not Found', function () {",
+                "    pm.response.to.have.status(404);",
+                "});",
+                "",
+                "pm.test('Mensaje de recurso no encontrado', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('error');",
+                "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+                "});"
+              ],
+              "_lastExecutionId": "df20256b-4fdb-4a79-8db7-2350ec9c04f5"
+            }
+          }
+        ]
+      },
+      {
+        "id": "d7bf9912-29a7-4b53-8bea-617fb1720152",
+        "name": "10 - Actualizar Producto Exitoso (200)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "{{created_product_id}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Teclado Mecánico RGB Pro\",\n  \"price\": 275000,\n  \"stock\": 12\n}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "31f15769-57af-44a1-bb7c-9a2f6a24c87c",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 200 OK', function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test('Valores actualizados reflejados en la respuesta', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('success');",
+                "    pm.expect(json.data.price).to.eql(275000);",
+                "    pm.expect(json.data.stock).to.eql(12);",
+                "    pm.expect(json.data.name).to.eql('Teclado Mecánico RGB Pro');",
+                "});"
+              ],
+              "_lastExecutionId": "0660e3e7-3f86-4224-b528-d004c79bdf1a"
+            }
+          }
+        ]
+      },
+      {
+        "id": "eb98a775-4521-44aa-98a4-0b51aaa7a528",
+        "name": "11 - Actualizar Producto - Error Validación Stock Negativo (400)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "{{created_product_id}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"stock\": -9\n}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "fb0031c5-0005-435d-a1cc-3365d822329c",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 400 Bad Request', function () {",
+                "    pm.response.to.have.status(400);",
+                "});",
+                "",
+                "pm.test('Mensaje de error por stock negativo', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('fail');",
+                "    pm.expect(json.errors).to.include('El stock no puede ser negativo');",
+                "});"
+              ],
+              "_lastExecutionId": "17388f94-ce4f-4159-988b-2db05137b0c2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "8f9d3141-121b-4765-9ccf-e7e95efa8072",
+        "name": "12 - Actualizar Producto - ID Inexistente (404)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "507f1f77bcf86cd799439011"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"price\": 100000\n}"
+          }
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "40fe7ce7-4104-4858-a25a-ef86c4e534fc",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 404 Not Found', function () {",
+                "    pm.response.to.have.status(404);",
+                "});",
+                "",
+                "pm.test('Respuesta de error 404 consistente', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('error');",
+                "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+                "});"
+              ],
+              "_lastExecutionId": "a49e9693-1a7b-4c6b-8056-9e070f3e9d59"
+            }
+          }
+        ]
+      },
+      {
+        "id": "129e169c-fc8e-43ac-8741-8769f6622c4c",
+        "name": "13 - Eliminar Producto Exitoso (204)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "{{created_product_id}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "DELETE"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "c3bc0256-34f1-4f5a-b9fd-a5d8863d2e90",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 204 No Content', function () {",
+                "    pm.response.to.have.status(204);",
+                "});",
+                "",
+                "pm.test('Cuerpo de respuesta está vacío según estándar 204', function () {",
+                "    pm.expect(pm.response.text()).to.eql('');",
+                "});"
+              ],
+              "_lastExecutionId": "9d109b5d-07bc-43da-b2cb-a20ff631365f"
+            }
+          }
+        ]
+      },
+      {
+        "id": "98a37688-58df-4eda-9b71-d73a39fe917b",
+        "name": "14 - Consultar Producto Ya Eliminado (404)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "{{created_product_id}}"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "37d6b1ae-1057-4172-96d1-ba39aef45ed5",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 404 Not Found tras eliminación', function () {",
+                "    pm.response.to.have.status(404);",
+                "});",
+                "",
+                "pm.test('Confirma que el recurso fue realmente eliminado', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('error');",
+                "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+                "});"
+              ],
+              "_lastExecutionId": "4e6730a9-4b10-44a6-b035-0bf1e91bc89a"
+            }
+          }
+        ]
+      },
+      {
+        "id": "c116a794-3dae-407c-8255-37523b44ea14",
+        "name": "15 - Eliminar Producto Inexistente (404)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "507f1f77bcf86cd799439011"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "DELETE"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "a2effe08-cd0f-4e5f-a0bc-c6608823fb5d",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 404 Not Found', function () {",
+                "    pm.response.to.have.status(404);",
+                "});",
+                "",
+                "pm.test('Respuesta consistente ante eliminación de recurso inexistente', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('error');",
+                "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+                "});"
+              ],
+              "_lastExecutionId": "640a8382-aa06-4553-a14b-1ebd2f3a998e"
+            }
+          }
+        ]
+      },
+      {
+        "id": "96a4ef56-fbb2-4579-b770-d612d4482d81",
+        "name": "16 - Ruta No Registrada (404 Fail)",
+        "request": {
+          "url": {
+            "path": [
+              "api",
+              "v1",
+              "rutas-inexistentes"
+            ],
+            "host": [
+              "{{baseUrl}}"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            }
+          ],
+          "method": "GET"
+        },
+        "response": [],
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "id": "98923ff5-fe38-4bc1-8cdd-48535bb96a66",
+              "type": "text/javascript",
+              "exec": [
+                "pm.test('Status code es 404 Not Found', function () {",
+                "    pm.response.to.have.status(404);",
+                "});",
+                "",
+                "pm.test('Formato fail en ruta no registrada', function () {",
+                "    const json = pm.response.json();",
+                "    pm.expect(json.status).to.eql('fail');",
+                "    pm.expect(json.message).to.include('no encontrada');",
+                "});"
+              ],
+              "_lastExecutionId": "1019c4e9-6d18-4d6a-bd67-13667f2a2343"
+            }
+          }
+        ]
+      }
+    ],
+    "event": [],
+    "variable": [
+      {
+        "type": "string",
+        "value": "http://localhost:3000",
+        "key": "baseUrl"
+      },
+      {
+        "type": "string",
+        "value": "Periféricos",
+        "key": "productCategory"
+      },
+      {
+        "type": "string",
+        "value": "",
+        "key": "created_product_id"
+      }
+    ],
+    "info": {
+      "_postman_id": "c1f7b8e2-9b51-4f81-8b73-fa92b515a0c3",
+      "name": "DES-11 API Integration & Contract Tests",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": {
+        "content": "Colección de pruebas automatizadas para la API REST de Inventario de Productos (DES-11). Incluye validaciones exhaustivas de contratos, códigos HTTP, tipos de contenido, reglas de negocio, casos positivos, negativos y consistencia de datos.",
+        "type": "text/plain"
+      }
+    }
+  },
+  "environment": {
+    "_": {
+      "postman_variable_scope": "environment"
+    },
+    "id": "7b8d4f6a-9321-41e8-9418-c0b89e2c65a1",
+    "name": "Inventario API - Local Environment",
+    "values": [
+      {
+        "type": "any",
+        "value": "http://localhost:3000",
+        "key": "baseUrl"
+      },
+      {
+        "type": "any",
+        "value": "Periféricos",
+        "key": "productCategory"
+      },
+      {
+        "type": "any",
+        "value": "6ae22bebf6868afd87aa50a4",
+        "key": "created_product_id"
+      }
+    ]
+  },
+  "globals": {
+    "id": "555b763d-2291-40d1-a83c-7a2d17d20fd9",
+    "values": []
+  },
+  "run": {
+    "stats": {
+      "iterations": {
+        "total": 1,
+        "pending": 0,
+        "failed": 0
+      },
+      "items": {
+        "total": 16,
+        "pending": 0,
+        "failed": 0
+      },
+      "scripts": {
+        "total": 16,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequests": {
+        "total": 16,
+        "pending": 0,
+        "failed": 0
+      },
+      "requests": {
+        "total": 16,
+        "pending": 0,
+        "failed": 0
+      },
+      "tests": {
+        "total": 16,
+        "pending": 0,
+        "failed": 0
+      },
+      "assertions": {
+        "total": 34,
+        "pending": 0,
+        "failed": 0
+      },
+      "testScripts": {
+        "total": 16,
+        "pending": 0,
+        "failed": 0
+      },
+      "prerequestScripts": {
+        "total": 0,
+        "pending": 0,
+        "failed": 0
+      }
+    },
+    "timings": {
+      "responseAverage": 21.125,
+      "responseMin": 5,
+      "responseMax": 79,
+      "responseSd": 19.53482467287588,
+      "dnsAverage": 0,
+      "dnsMin": 0,
+      "dnsMax": 0,
+      "dnsSd": 0,
+      "firstByteAverage": 0,
+      "firstByteMin": 0,
+      "firstByteMax": 0,
+      "firstByteSd": 0,
+      "started": 1793207275064,
+      "completed": 1793207276908
+    },
+    "executions": [
+      {
+        "cursor": {
+          "position": 0,
+          "iteration": 0,
+          "length": 16,
+          "cycles": 1,
+          "empty": false,
+          "eof": false,
+          "bof": true,
+          "cr": false,
+          "ref": "92bdea35-02be-4b04-a4a1-cb53e9c0709c",
+          "httpRequestId": "b3ec1f1b-1607-4162-8c6a-d259ff1bbbb3"
+        },
+        "item": {
+          "id": "7ee7d33e-b8b5-42a1-9ded-8b3cf6ce5038",
+          "name": "01 - Health Check",
+          "request": {
+            "url": {
+              "path": [
+                "health"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "2e201be6-2081-41fc-8488-37aaa00dabdd",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type es application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Respuesta tiene estructura válida de health check', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an('object');",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "    pm.expect(json.message).to.eql('Servidor de Inventario activo');",
+                  "});"
+                ],
+                "_lastExecutionId": "052dcf9a-0f71-440c-893e-f685cb3cb1ed"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "health"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "bec8cab4-91e6-4798-9789-0f6669817aac",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "dc3b26df-51bc-44ee-bf31-b44efe30c33a",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "62"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"3e-sNanmaHi+gxCblgCyL4jQzHp1eQ\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:55 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              115,
+              117,
+              99,
+              99,
+              101,
+              115,
+              115,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              83,
+              101,
+              114,
+              118,
+              105,
+              100,
+              111,
+              114,
+              32,
+              100,
+              101,
+              32,
+              73,
+              110,
+              118,
+              101,
+              110,
+              116,
+              97,
+              114,
+              105,
+              111,
+              32,
+              97,
+              99,
+              116,
+              105,
+              118,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 79,
+          "responseSize": 62
+        },
+        "id": "7ee7d33e-b8b5-42a1-9ded-8b3cf6ce5038",
+        "assertions": [
+          {
+            "assertion": "Status code es 200 OK",
+            "skipped": false
+          },
+          {
+            "assertion": "Content-Type es application/json",
+            "skipped": false
+          },
+          {
+            "assertion": "Respuesta tiene estructura válida de health check",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "7a37de69-3787-4083-86ec-7696b8cb1608",
+          "length": 16,
+          "cycles": 1,
+          "position": 1,
+          "iteration": 0,
+          "httpRequestId": "6a4f437a-1335-4acf-a30f-44c1ad2cd60a"
+        },
+        "item": {
+          "id": "a3e5b366-82e2-4fb2-9be3-1480267eabfa",
+          "name": "02 - Crear Producto Exitoso (201)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Teclado Mecánico RGB\",\n  \"category\": \"{{productCategory}}\",\n  \"price\": 250000,\n  \"stock\": 15\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "431e59c8-855a-476f-99d1-a60b9556c374",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 201 Created', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type es application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Contrato de respuesta y datos del producto creado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.be.an('object');",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "    pm.expect(json.data).to.be.an('object');",
+                  "    pm.expect(json.data._id).to.be.a('string');",
+                  "    pm.expect(json.data.name).to.eql('Teclado Mecánico RGB');",
+                  "    pm.expect(json.data.category).to.eql(pm.collectionVariables.get('productCategory') || 'Periféricos');",
+                  "    pm.expect(json.data.price).to.eql(250000);",
+                  "    pm.expect(json.data.stock).to.eql(15);",
+                  "    pm.expect(json.data.createdAt).to.be.a('string');",
+                  "    pm.expect(json.data.updatedAt).to.be.a('string');",
+                  "",
+                  "    // Guardar ID en variables de colección y entorno para peticiones siguientes",
+                  "    pm.collectionVariables.set('created_product_id', json.data._id);",
+                  "    pm.environment.set('created_product_id', json.data._id);",
+                  "});"
+                ],
+                "_lastExecutionId": "1eb808fa-b7d7-49ac-bfaa-359a4ad13605"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "9d93f3a3-26bc-4519-9c12-e235ea71a702",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "101",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Teclado Mecánico RGB\",\n  \"category\": \"Periféricos\",\n  \"price\": 250000,\n  \"stock\": 15\n}"
+          }
+        },
+        "response": {
+          "id": "86d1acb1-9ea7-4ca4-9e5b-68d0365b15f8",
+          "status": "Created",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "223"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"df-fha6hORG/TbWjhwR7gQp/joH6Fw\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:55 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              115,
+              117,
+              99,
+              99,
+              101,
+              115,
+              115,
+              34,
+              44,
+              34,
+              100,
+              97,
+              116,
+              97,
+              34,
+              58,
+              123,
+              34,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              84,
+              101,
+              99,
+              108,
+              97,
+              100,
+              111,
+              32,
+              77,
+              101,
+              99,
+              195,
+              161,
+              110,
+              105,
+              99,
+              111,
+              32,
+              82,
+              71,
+              66,
+              34,
+              44,
+              34,
+              99,
+              97,
+              116,
+              101,
+              103,
+              111,
+              114,
+              121,
+              34,
+              58,
+              34,
+              80,
+              101,
+              114,
+              105,
+              102,
+              195,
+              169,
+              114,
+              105,
+              99,
+              111,
+              115,
+              34,
+              44,
+              34,
+              112,
+              114,
+              105,
+              99,
+              101,
+              34,
+              58,
+              50,
+              53,
+              48,
+              48,
+              48,
+              48,
+              44,
+              34,
+              115,
+              116,
+              111,
+              99,
+              107,
+              34,
+              58,
+              49,
+              53,
+              44,
+              34,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              54,
+              97,
+              101,
+              50,
+              50,
+              98,
+              101,
+              98,
+              102,
+              54,
+              56,
+              54,
+              56,
+              97,
+              102,
+              100,
+              56,
+              55,
+              97,
+              97,
+              53,
+              48,
+              97,
+              52,
+              34,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              53,
+              46,
+              51,
+              52,
+              51,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              53,
+              46,
+              51,
+              52,
+              51,
+              90,
+              34,
+              125,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 47,
+          "responseSize": 223
+        },
+        "id": "a3e5b366-82e2-4fb2-9be3-1480267eabfa",
+        "assertions": [
+          {
+            "assertion": "Status code es 201 Created",
+            "skipped": false
+          },
+          {
+            "assertion": "Content-Type es application/json",
+            "skipped": false
+          },
+          {
+            "assertion": "Contrato de respuesta y datos del producto creado",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "352af325-afa0-40ed-8540-c5815e55c06c",
+          "length": 16,
+          "cycles": 1,
+          "position": 2,
+          "iteration": 0,
+          "httpRequestId": "d4626c7b-3242-4bbb-8ecf-5ce018aa0ec2"
+        },
+        "item": {
+          "id": "5f721854-a495-4c29-8efd-7a5cc0a831f8",
+          "name": "03 - Crear Producto - Error de Validación Campos Obligatorios (400)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Periféricos\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "5bda3b11-57ef-430f-b481-a0377a26c973",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Estructura de error por campos faltantes', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "    pm.expect(json.message).to.eql('Datos de entrada inválidos');",
+                  "    pm.expect(json.errors).to.be.an('array');",
+                  "    pm.expect(json.errors.length).to.be.at.least(2);",
+                  "});"
+                ],
+                "_lastExecutionId": "1a673995-70d6-4200-81fc-e1a1411b2d5f"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "eb059855-f79f-412b-a309-f97e500e3a50",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "32",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"category\": \"Periféricos\"\n}"
+          }
+        },
+        "response": {
+          "id": "4504b662-8792-4842-830c-cabcf7e3d73f",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "135"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"87-WsBLirOBsxv4+kmohAAl19DBZ7Q\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:55 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              102,
+              97,
+              105,
+              108,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              68,
+              97,
+              116,
+              111,
+              115,
+              32,
+              100,
+              101,
+              32,
+              101,
+              110,
+              116,
+              114,
+              97,
+              100,
+              97,
+              32,
+              105,
+              110,
+              118,
+              195,
+              161,
+              108,
+              105,
+              100,
+              111,
+              115,
+              34,
+              44,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              115,
+              34,
+              58,
+              91,
+              34,
+              69,
+              108,
+              32,
+              112,
+              114,
+              101,
+              99,
+              105,
+              111,
+              32,
+              101,
+              115,
+              32,
+              111,
+              98,
+              108,
+              105,
+              103,
+              97,
+              116,
+              111,
+              114,
+              105,
+              111,
+              34,
+              44,
+              34,
+              69,
+              108,
+              32,
+              110,
+              111,
+              109,
+              98,
+              114,
+              101,
+              32,
+              100,
+              101,
+              108,
+              32,
+              112,
+              114,
+              111,
+              100,
+              117,
+              99,
+              116,
+              111,
+              32,
+              101,
+              115,
+              32,
+              111,
+              98,
+              108,
+              105,
+              103,
+              97,
+              116,
+              111,
+              114,
+              105,
+              111,
+              34,
+              93,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 15,
+          "responseSize": 135
+        },
+        "id": "5f721854-a495-4c29-8efd-7a5cc0a831f8",
+        "assertions": [
+          {
+            "assertion": "Status code es 400 Bad Request",
+            "skipped": false
+          },
+          {
+            "assertion": "Estructura de error por campos faltantes",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "b18ada61-4385-4d3c-95ac-5a9b003a5064",
+          "length": 16,
+          "cycles": 1,
+          "position": 3,
+          "iteration": 0,
+          "httpRequestId": "bceec5ad-a380-46f3-ac66-20b931a70df7"
+        },
+        "item": {
+          "id": "5b0b3fc0-4030-4caa-b96e-6e9fd0436fa1",
+          "name": "04 - Crear Producto - Error Precio Negativo (400)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mouse Invalido\",\n  \"category\": \"Periféricos\",\n  \"price\": -50000,\n  \"stock\": 10\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "7455d18d-37b1-4d7d-98d9-aa27840e945a",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Mensaje de validación de precio negativo', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "    pm.expect(json.message).to.eql('Datos de entrada inválidos');",
+                  "    pm.expect(json.errors).to.include('El precio no puede ser negativo');",
+                  "});"
+                ],
+                "_lastExecutionId": "45bce20c-753d-4139-8ee7-1f145bf8a73f"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "ad5fcb1c-7836-428c-bc22-7792ec6e10e3",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "94",
+              "system": true
+            }
+          ],
+          "method": "POST",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Mouse Invalido\",\n  \"category\": \"Periféricos\",\n  \"price\": -50000,\n  \"stock\": 10\n}"
+          }
+        },
+        "response": {
+          "id": "b01e3bcd-77e1-4058-9168-2b0559c28386",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "102"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"66-lL8PdsskTYys0gJrZlQdgjhkwuA\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:55 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              102,
+              97,
+              105,
+              108,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              68,
+              97,
+              116,
+              111,
+              115,
+              32,
+              100,
+              101,
+              32,
+              101,
+              110,
+              116,
+              114,
+              97,
+              100,
+              97,
+              32,
+              105,
+              110,
+              118,
+              195,
+              161,
+              108,
+              105,
+              100,
+              111,
+              115,
+              34,
+              44,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              115,
+              34,
+              58,
+              91,
+              34,
+              69,
+              108,
+              32,
+              112,
+              114,
+              101,
+              99,
+              105,
+              111,
+              32,
+              110,
+              111,
+              32,
+              112,
+              117,
+              101,
+              100,
+              101,
+              32,
+              115,
+              101,
+              114,
+              32,
+              110,
+              101,
+              103,
+              97,
+              116,
+              105,
+              118,
+              111,
+              34,
+              93,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 10,
+          "responseSize": 102
+        },
+        "id": "5b0b3fc0-4030-4caa-b96e-6e9fd0436fa1",
+        "assertions": [
+          {
+            "assertion": "Status code es 400 Bad Request",
+            "skipped": false
+          },
+          {
+            "assertion": "Mensaje de validación de precio negativo",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "88726463-98be-4028-b6c8-b269cc946e86",
+          "length": 16,
+          "cycles": 1,
+          "position": 4,
+          "iteration": 0,
+          "httpRequestId": "5bf0fc36-1dcd-4d50-bee3-84dea68a075f"
+        },
+        "item": {
+          "id": "41a4f14f-3d0e-42d5-8cf8-615b913022ac",
+          "name": "05 - Listar Todos los Productos (200)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "601c2ed5-0aab-4642-b30c-23d7f13e2e65",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta contiene lista y contador de resultados', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "    pm.expect(json.results).to.be.a('number');",
+                  "    pm.expect(json.results).to.be.at.least(1);",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ],
+                "_lastExecutionId": "42bbcecd-8fde-4463-a719-565078543ee4"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "84f8a2d0-252e-433f-b5d8-e11731a4e27e",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "a6f20e63-82f0-4141-9535-1aa28e3236e3",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "237"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"ed-UeOWkCQy2vKReOZ/ntmS6sygXpc\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:55 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              115,
+              117,
+              99,
+              99,
+              101,
+              115,
+              115,
+              34,
+              44,
+              34,
+              114,
+              101,
+              115,
+              117,
+              108,
+              116,
+              115,
+              34,
+              58,
+              49,
+              44,
+              34,
+              100,
+              97,
+              116,
+              97,
+              34,
+              58,
+              91,
+              123,
+              34,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              54,
+              97,
+              101,
+              50,
+              50,
+              98,
+              101,
+              98,
+              102,
+              54,
+              56,
+              54,
+              56,
+              97,
+              102,
+              100,
+              56,
+              55,
+              97,
+              97,
+              53,
+              48,
+              97,
+              52,
+              34,
+              44,
+              34,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              84,
+              101,
+              99,
+              108,
+              97,
+              100,
+              111,
+              32,
+              77,
+              101,
+              99,
+              195,
+              161,
+              110,
+              105,
+              99,
+              111,
+              32,
+              82,
+              71,
+              66,
+              34,
+              44,
+              34,
+              99,
+              97,
+              116,
+              101,
+              103,
+              111,
+              114,
+              121,
+              34,
+              58,
+              34,
+              80,
+              101,
+              114,
+              105,
+              102,
+              195,
+              169,
+              114,
+              105,
+              99,
+              111,
+              115,
+              34,
+              44,
+              34,
+              112,
+              114,
+              105,
+              99,
+              101,
+              34,
+              58,
+              50,
+              53,
+              48,
+              48,
+              48,
+              48,
+              44,
+              34,
+              115,
+              116,
+              111,
+              99,
+              107,
+              34,
+              58,
+              49,
+              53,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              53,
+              46,
+              51,
+              52,
+              51,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              53,
+              46,
+              51,
+              52,
+              51,
+              90,
+              34,
+              125,
+              93,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 25,
+          "responseSize": 237
+        },
+        "id": "41a4f14f-3d0e-42d5-8cf8-615b913022ac",
+        "assertions": [
+          {
+            "assertion": "Status code es 200 OK",
+            "skipped": false
+          },
+          {
+            "assertion": "Respuesta contiene lista y contador de resultados",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "721f9e0b-663f-4b87-a59d-57f26fb61844",
+          "length": 16,
+          "cycles": 1,
+          "position": 5,
+          "iteration": 0,
+          "httpRequestId": "ac736a47-5829-467e-b57f-d5c67568e829"
+        },
+        "item": {
+          "id": "bbf54b48-0e7c-452b-a275-aeb7749085fe",
+          "name": "06 - Listar Productos con Filtro de Categoría (200)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "{{productCategory}}"
+                }
+              ],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f06ebf72-a2eb-423f-8131-0bafc9b2c198",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Todos los elementos devueltos coinciden con la categoría solicitada', function () {",
+                  "    const json = pm.response.json();",
+                  "    const category = pm.collectionVariables.get('productCategory') || 'Periféricos';",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "    pm.expect(json.data).to.be.an('array');",
+                  "    json.data.forEach(function (p) {",
+                  "        pm.expect(p.category).to.eql(category);",
+                  "    });",
+                  "});"
+                ],
+                "_lastExecutionId": "e6925a20-5de7-428b-a6f1-a78b1bd96567"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [
+              {
+                "key": "category",
+                "value": "Perif%C3%A9ricos"
+              }
+            ],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "1fc0affb-031b-4840-898f-b4d663ad1aab",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "f58b2dff-ce7b-4507-b005-2454eb4a5823",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "237"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"ed-UeOWkCQy2vKReOZ/ntmS6sygXpc\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:55 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              115,
+              117,
+              99,
+              99,
+              101,
+              115,
+              115,
+              34,
+              44,
+              34,
+              114,
+              101,
+              115,
+              117,
+              108,
+              116,
+              115,
+              34,
+              58,
+              49,
+              44,
+              34,
+              100,
+              97,
+              116,
+              97,
+              34,
+              58,
+              91,
+              123,
+              34,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              54,
+              97,
+              101,
+              50,
+              50,
+              98,
+              101,
+              98,
+              102,
+              54,
+              56,
+              54,
+              56,
+              97,
+              102,
+              100,
+              56,
+              55,
+              97,
+              97,
+              53,
+              48,
+              97,
+              52,
+              34,
+              44,
+              34,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              84,
+              101,
+              99,
+              108,
+              97,
+              100,
+              111,
+              32,
+              77,
+              101,
+              99,
+              195,
+              161,
+              110,
+              105,
+              99,
+              111,
+              32,
+              82,
+              71,
+              66,
+              34,
+              44,
+              34,
+              99,
+              97,
+              116,
+              101,
+              103,
+              111,
+              114,
+              121,
+              34,
+              58,
+              34,
+              80,
+              101,
+              114,
+              105,
+              102,
+              195,
+              169,
+              114,
+              105,
+              99,
+              111,
+              115,
+              34,
+              44,
+              34,
+              112,
+              114,
+              105,
+              99,
+              101,
+              34,
+              58,
+              50,
+              53,
+              48,
+              48,
+              48,
+              48,
+              44,
+              34,
+              115,
+              116,
+              111,
+              99,
+              107,
+              34,
+              58,
+              49,
+              53,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              53,
+              46,
+              51,
+              52,
+              51,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              53,
+              46,
+              51,
+              52,
+              51,
+              90,
+              34,
+              125,
+              93,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 18,
+          "responseSize": 237
+        },
+        "id": "bbf54b48-0e7c-452b-a275-aeb7749085fe",
+        "assertions": [
+          {
+            "assertion": "Status code es 200 OK",
+            "skipped": false
+          },
+          {
+            "assertion": "Todos los elementos devueltos coinciden con la categoría solicitada",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "c38d7fb9-1e0b-4c2c-ab02-64ed5cf6a23d",
+          "length": 16,
+          "cycles": 1,
+          "position": 6,
+          "iteration": 0,
+          "httpRequestId": "0ce1af17-193c-4437-b7f6-b551f39929b8"
+        },
+        "item": {
+          "id": "5bcb71b8-00d8-48b7-8262-bb43b9253a8a",
+          "name": "07 - Consultar Producto por ID Exitoso (200)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{created_product_id}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "01aa4229-b5f9-405b-b171-9900cdbfbf2c",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Objeto retornado coincide con el ID creado', function () {",
+                  "    const json = pm.response.json();",
+                  "    const expectedId = pm.collectionVariables.get('created_product_id');",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "    pm.expect(json.data).to.be.an('object');",
+                  "    pm.expect(json.data._id).to.eql(expectedId);",
+                  "    pm.expect(json.data.name).to.eql('Teclado Mecánico RGB');",
+                  "});"
+                ],
+                "_lastExecutionId": "d511d98f-c343-4ee2-bf7f-dccc855e1362"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "6ae22bebf6868afd87aa50a4"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "651aafea-7abb-40c7-a6af-347f9fed97f7",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "a888562e-72c4-42f0-b86c-2ee3c58a289e",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "223"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"df-DxlbvwfaYNDTUghFMWmLcpUUuTU\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:55 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              115,
+              117,
+              99,
+              99,
+              101,
+              115,
+              115,
+              34,
+              44,
+              34,
+              100,
+              97,
+              116,
+              97,
+              34,
+              58,
+              123,
+              34,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              54,
+              97,
+              101,
+              50,
+              50,
+              98,
+              101,
+              98,
+              102,
+              54,
+              56,
+              54,
+              56,
+              97,
+              102,
+              100,
+              56,
+              55,
+              97,
+              97,
+              53,
+              48,
+              97,
+              52,
+              34,
+              44,
+              34,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              84,
+              101,
+              99,
+              108,
+              97,
+              100,
+              111,
+              32,
+              77,
+              101,
+              99,
+              195,
+              161,
+              110,
+              105,
+              99,
+              111,
+              32,
+              82,
+              71,
+              66,
+              34,
+              44,
+              34,
+              99,
+              97,
+              116,
+              101,
+              103,
+              111,
+              114,
+              121,
+              34,
+              58,
+              34,
+              80,
+              101,
+              114,
+              105,
+              102,
+              195,
+              169,
+              114,
+              105,
+              99,
+              111,
+              115,
+              34,
+              44,
+              34,
+              112,
+              114,
+              105,
+              99,
+              101,
+              34,
+              58,
+              50,
+              53,
+              48,
+              48,
+              48,
+              48,
+              44,
+              34,
+              115,
+              116,
+              111,
+              99,
+              107,
+              34,
+              58,
+              49,
+              53,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              53,
+              46,
+              51,
+              52,
+              51,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              53,
+              46,
+              51,
+              52,
+              51,
+              90,
+              34,
+              125,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 10,
+          "responseSize": 223
+        },
+        "id": "5bcb71b8-00d8-48b7-8262-bb43b9253a8a",
+        "assertions": [
+          {
+            "assertion": "Status code es 200 OK",
+            "skipped": false
+          },
+          {
+            "assertion": "Objeto retornado coincide con el ID creado",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "c2822e92-cbeb-4ecb-ad33-8c9788cc9022",
+          "length": 16,
+          "cycles": 1,
+          "position": 7,
+          "iteration": 0,
+          "httpRequestId": "7e5fba2c-90e9-48b1-9baf-670d56f8f8e9"
+        },
+        "item": {
+          "id": "9460b4e1-fda3-4c27-ad22-a194891f63ec",
+          "name": "08 - Consultar Producto - Formato ID Inválido (400)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "formato-invalido-123"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "63d4176b-a534-4b79-842b-e467284583e2",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Mensaje de ID inválido en formato fail', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "    pm.expect(json.message).to.include('ID inválido: formato-invalido-123');",
+                  "});"
+                ],
+                "_lastExecutionId": "89fdc099-f670-4901-affd-ce6e1d6aca78"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "formato-invalido-123"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "73d29917-d8a5-40de-be1c-aa06ab9665f6",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "6e2a3f34-aaa5-4618-8fab-69aa09e4b9f2",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "64"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"40-ItDiNBcz4zJlFMPrkoJ/VnuaJmg\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:55 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              102,
+              97,
+              105,
+              108,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              73,
+              68,
+              32,
+              105,
+              110,
+              118,
+              195,
+              161,
+              108,
+              105,
+              100,
+              111,
+              58,
+              32,
+              102,
+              111,
+              114,
+              109,
+              97,
+              116,
+              111,
+              45,
+              105,
+              110,
+              118,
+              97,
+              108,
+              105,
+              100,
+              111,
+              45,
+              49,
+              50,
+              51,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 7,
+          "responseSize": 64
+        },
+        "id": "9460b4e1-fda3-4c27-ad22-a194891f63ec",
+        "assertions": [
+          {
+            "assertion": "Status code es 400 Bad Request",
+            "skipped": false
+          },
+          {
+            "assertion": "Mensaje de ID inválido en formato fail",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "570dfa36-3be2-4dde-b8da-610a625e10b7",
+          "length": 16,
+          "cycles": 1,
+          "position": 8,
+          "iteration": 0,
+          "httpRequestId": "22b1025b-1091-499a-b5c9-3599bc6ee7d4"
+        },
+        "item": {
+          "id": "fb2f6f05-f6a0-4c29-8519-408a8cb28b79",
+          "name": "09 - Consultar Producto - ID Inexistente (404)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "507f1f77bcf86cd799439011"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "ed070e14-98f8-4db4-9464-7f54a543344f",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Mensaje de recurso no encontrado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('error');",
+                  "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+                  "});"
+                ],
+                "_lastExecutionId": "df20256b-4fdb-4a79-8db7-2350ec9c04f5"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "507f1f77bcf86cd799439011"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "3c39f379-94f8-45ca-b2db-f2d517a8550a",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "51715336-36ae-49d2-818c-164e3fc0eaf0",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "52"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"34-BQzM6Yzbqmt4fKJjsPYPu5yIrbw\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:56 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              82,
+              101,
+              99,
+              117,
+              114,
+              115,
+              111,
+              32,
+              110,
+              111,
+              32,
+              101,
+              110,
+              99,
+              111,
+              110,
+              116,
+              114,
+              97,
+              100,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 17,
+          "responseSize": 52
+        },
+        "id": "fb2f6f05-f6a0-4c29-8519-408a8cb28b79",
+        "assertions": [
+          {
+            "assertion": "Status code es 404 Not Found",
+            "skipped": false
+          },
+          {
+            "assertion": "Mensaje de recurso no encontrado",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "bfba94e3-c221-49c5-ba2e-976a7cc04566",
+          "length": 16,
+          "cycles": 1,
+          "position": 9,
+          "iteration": 0,
+          "httpRequestId": "225d5d18-315a-4527-8a5f-87a2b2c96462"
+        },
+        "item": {
+          "id": "d7bf9912-29a7-4b53-8bea-617fb1720152",
+          "name": "10 - Actualizar Producto Exitoso (200)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{created_product_id}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Teclado Mecánico RGB Pro\",\n  \"price\": 275000,\n  \"stock\": 12\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "31f15769-57af-44a1-bb7c-9a2f6a24c87c",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 200 OK', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Valores actualizados reflejados en la respuesta', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('success');",
+                  "    pm.expect(json.data.price).to.eql(275000);",
+                  "    pm.expect(json.data.stock).to.eql(12);",
+                  "    pm.expect(json.data.name).to.eql('Teclado Mecánico RGB Pro');",
+                  "});"
+                ],
+                "_lastExecutionId": "0660e3e7-3f86-4224-b528-d004c79bdf1a"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "6ae22bebf6868afd87aa50a4"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "67ac5b28-44a5-4427-bb13-b6645e605f26",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "75",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Teclado Mecánico RGB Pro\",\n  \"price\": 275000,\n  \"stock\": 12\n}"
+          }
+        },
+        "response": {
+          "id": "f0419657-3121-4921-87e2-0647adb71cdb",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "227"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"e3-ainIPbcyFT5eDxy8VXdZMgmYptM\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:56 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              115,
+              117,
+              99,
+              99,
+              101,
+              115,
+              115,
+              34,
+              44,
+              34,
+              100,
+              97,
+              116,
+              97,
+              34,
+              58,
+              123,
+              34,
+              95,
+              105,
+              100,
+              34,
+              58,
+              34,
+              54,
+              97,
+              101,
+              50,
+              50,
+              98,
+              101,
+              98,
+              102,
+              54,
+              56,
+              54,
+              56,
+              97,
+              102,
+              100,
+              56,
+              55,
+              97,
+              97,
+              53,
+              48,
+              97,
+              52,
+              34,
+              44,
+              34,
+              110,
+              97,
+              109,
+              101,
+              34,
+              58,
+              34,
+              84,
+              101,
+              99,
+              108,
+              97,
+              100,
+              111,
+              32,
+              77,
+              101,
+              99,
+              195,
+              161,
+              110,
+              105,
+              99,
+              111,
+              32,
+              82,
+              71,
+              66,
+              32,
+              80,
+              114,
+              111,
+              34,
+              44,
+              34,
+              99,
+              97,
+              116,
+              101,
+              103,
+              111,
+              114,
+              121,
+              34,
+              58,
+              34,
+              80,
+              101,
+              114,
+              105,
+              102,
+              195,
+              169,
+              114,
+              105,
+              99,
+              111,
+              115,
+              34,
+              44,
+              34,
+              112,
+              114,
+              105,
+              99,
+              101,
+              34,
+              58,
+              50,
+              55,
+              53,
+              48,
+              48,
+              48,
+              44,
+              34,
+              115,
+              116,
+              111,
+              99,
+              107,
+              34,
+              58,
+              49,
+              50,
+              44,
+              34,
+              99,
+              114,
+              101,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              53,
+              46,
+              51,
+              52,
+              51,
+              90,
+              34,
+              44,
+              34,
+              117,
+              112,
+              100,
+              97,
+              116,
+              101,
+              100,
+              65,
+              116,
+              34,
+              58,
+              34,
+              50,
+              48,
+              50,
+              54,
+              45,
+              49,
+              48,
+              45,
+              50,
+              56,
+              84,
+              49,
+              55,
+              58,
+              48,
+              55,
+              58,
+              53,
+              54,
+              46,
+              50,
+              48,
+              50,
+              90,
+              34,
+              125,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 49,
+          "responseSize": 227
+        },
+        "id": "d7bf9912-29a7-4b53-8bea-617fb1720152",
+        "assertions": [
+          {
+            "assertion": "Status code es 200 OK",
+            "skipped": false
+          },
+          {
+            "assertion": "Valores actualizados reflejados en la respuesta",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "10a6c583-37b1-418b-ae3c-f6fbe95ad5fc",
+          "length": 16,
+          "cycles": 1,
+          "position": 10,
+          "iteration": 0,
+          "httpRequestId": "f1318ed3-f804-4ffb-ad7c-847ad5e9846c"
+        },
+        "item": {
+          "id": "eb98a775-4521-44aa-98a4-0b51aaa7a528",
+          "name": "11 - Actualizar Producto - Error Validación Stock Negativo (400)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{created_product_id}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stock\": -9\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "fb0031c5-0005-435d-a1cc-3365d822329c",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 400 Bad Request', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Mensaje de error por stock negativo', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "    pm.expect(json.errors).to.include('El stock no puede ser negativo');",
+                  "});"
+                ],
+                "_lastExecutionId": "17388f94-ce4f-4159-988b-2db05137b0c2"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "6ae22bebf6868afd87aa50a4"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "2c0e1c78-164b-4b6d-b07f-2885f37db348",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "17",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"stock\": -9\n}"
+          }
+        },
+        "response": {
+          "id": "5940b1ef-a456-405b-8327-614780e5f7d0",
+          "status": "Bad Request",
+          "code": 400,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "101"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"65-uUtbr0l7B+FRzetptv26lxWS9nc\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:56 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              102,
+              97,
+              105,
+              108,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              68,
+              97,
+              116,
+              111,
+              115,
+              32,
+              100,
+              101,
+              32,
+              101,
+              110,
+              116,
+              114,
+              97,
+              100,
+              97,
+              32,
+              105,
+              110,
+              118,
+              195,
+              161,
+              108,
+              105,
+              100,
+              111,
+              115,
+              34,
+              44,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              115,
+              34,
+              58,
+              91,
+              34,
+              69,
+              108,
+              32,
+              115,
+              116,
+              111,
+              99,
+              107,
+              32,
+              110,
+              111,
+              32,
+              112,
+              117,
+              101,
+              100,
+              101,
+              32,
+              115,
+              101,
+              114,
+              32,
+              110,
+              101,
+              103,
+              97,
+              116,
+              105,
+              118,
+              111,
+              34,
+              93,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 10,
+          "responseSize": 101
+        },
+        "id": "eb98a775-4521-44aa-98a4-0b51aaa7a528",
+        "assertions": [
+          {
+            "assertion": "Status code es 400 Bad Request",
+            "skipped": false
+          },
+          {
+            "assertion": "Mensaje de error por stock negativo",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "8cd7df4e-0ebc-4efb-b8be-acc38ab2b2c3",
+          "length": 16,
+          "cycles": 1,
+          "position": 11,
+          "iteration": 0,
+          "httpRequestId": "87b6c091-471f-4c01-a5ab-1aba0cca71a5"
+        },
+        "item": {
+          "id": "8f9d3141-121b-4765-9ccf-e7e95efa8072",
+          "name": "12 - Actualizar Producto - ID Inexistente (404)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "507f1f77bcf86cd799439011"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "PUT",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 100000\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "40fe7ce7-4104-4858-a25a-ef86c4e534fc",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta de error 404 consistente', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('error');",
+                  "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+                  "});"
+                ],
+                "_lastExecutionId": "a49e9693-1a7b-4c6b-8056-9e070f3e9d59"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "507f1f77bcf86cd799439011"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "3224f1d9-512c-41ea-a612-d9a93f83fec8",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            },
+            {
+              "key": "Content-Length",
+              "value": "21",
+              "system": true
+            }
+          ],
+          "method": "PUT",
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"price\": 100000\n}"
+          }
+        },
+        "response": {
+          "id": "0d62c574-3671-47f7-ab06-8d8cd2205396",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "52"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"34-BQzM6Yzbqmt4fKJjsPYPu5yIrbw\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:56 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              82,
+              101,
+              99,
+              117,
+              114,
+              115,
+              111,
+              32,
+              110,
+              111,
+              32,
+              101,
+              110,
+              99,
+              111,
+              110,
+              116,
+              114,
+              97,
+              100,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 13,
+          "responseSize": 52
+        },
+        "id": "8f9d3141-121b-4765-9ccf-e7e95efa8072",
+        "assertions": [
+          {
+            "assertion": "Status code es 404 Not Found",
+            "skipped": false
+          },
+          {
+            "assertion": "Respuesta de error 404 consistente",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "efc74349-0b97-4045-8a35-7476a40a0644",
+          "length": 16,
+          "cycles": 1,
+          "position": 12,
+          "iteration": 0,
+          "httpRequestId": "2fc08f5a-ec56-4913-a68f-656975ef21f6"
+        },
+        "item": {
+          "id": "129e169c-fc8e-43ac-8741-8769f6622c4c",
+          "name": "13 - Eliminar Producto Exitoso (204)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{created_product_id}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c3bc0256-34f1-4f5a-b9fd-a5d8863d2e90",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 204 No Content', function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "",
+                  "pm.test('Cuerpo de respuesta está vacío según estándar 204', function () {",
+                  "    pm.expect(pm.response.text()).to.eql('');",
+                  "});"
+                ],
+                "_lastExecutionId": "9d109b5d-07bc-43da-b2cb-a20ff631365f"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "6ae22bebf6868afd87aa50a4"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "aa77a27c-1bfe-43ab-8dc8-83c1bf22230e",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "DELETE"
+        },
+        "response": {
+          "id": "a8a810b3-d5e3-41de-a768-591aff2e919e",
+          "status": "No Content",
+          "code": 204,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"20-bff5r/a5MyNNWy9hjn8a8pOLDxA\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:56 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": []
+          },
+          "cookie": [],
+          "responseTime": 14,
+          "responseSize": 0
+        },
+        "id": "129e169c-fc8e-43ac-8741-8769f6622c4c",
+        "assertions": [
+          {
+            "assertion": "Status code es 204 No Content",
+            "skipped": false
+          },
+          {
+            "assertion": "Cuerpo de respuesta está vacío según estándar 204",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "9da63ee1-cece-4592-a773-2b4522def48b",
+          "length": 16,
+          "cycles": 1,
+          "position": 13,
+          "iteration": 0,
+          "httpRequestId": "5d5622d4-f830-4db3-9fef-6793e74d141b"
+        },
+        "item": {
+          "id": "98a37688-58df-4eda-9b71-d73a39fe917b",
+          "name": "14 - Consultar Producto Ya Eliminado (404)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "{{created_product_id}}"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "37d6b1ae-1057-4172-96d1-ba39aef45ed5",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 404 Not Found tras eliminación', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Confirma que el recurso fue realmente eliminado', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('error');",
+                  "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+                  "});"
+                ],
+                "_lastExecutionId": "4e6730a9-4b10-44a6-b035-0bf1e91bc89a"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "6ae22bebf6868afd87aa50a4"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "ea6812a1-db97-4c45-aaf5-f8fb36110813",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "c5486819-2000-4252-94cb-da85d430f317",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "52"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"34-BQzM6Yzbqmt4fKJjsPYPu5yIrbw\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:56 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              82,
+              101,
+              99,
+              117,
+              114,
+              115,
+              111,
+              32,
+              110,
+              111,
+              32,
+              101,
+              110,
+              99,
+              111,
+              110,
+              116,
+              114,
+              97,
+              100,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 12,
+          "responseSize": 52
+        },
+        "id": "98a37688-58df-4eda-9b71-d73a39fe917b",
+        "assertions": [
+          {
+            "assertion": "Status code es 404 Not Found tras eliminación",
+            "skipped": false
+          },
+          {
+            "assertion": "Confirma que el recurso fue realmente eliminado",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "f2b5a084-a4be-4dd4-86e9-10e614d675c9",
+          "length": 16,
+          "cycles": 1,
+          "position": 14,
+          "iteration": 0,
+          "httpRequestId": "0c4f2808-0a70-4235-93a0-c235f7f3e9a5"
+        },
+        "item": {
+          "id": "c116a794-3dae-407c-8255-37523b44ea14",
+          "name": "15 - Eliminar Producto Inexistente (404)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "507f1f77bcf86cd799439011"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "a2effe08-cd0f-4e5f-a0bc-c6608823fb5d",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta consistente ante eliminación de recurso inexistente', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('error');",
+                  "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+                  "});"
+                ],
+                "_lastExecutionId": "640a8382-aa06-4553-a14b-1ebd2f3a998e"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "products",
+              "507f1f77bcf86cd799439011"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "9bca8260-5977-405b-b989-83a7dca29bea",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "DELETE"
+        },
+        "response": {
+          "id": "62f073f6-2613-4c7e-b538-84fd2a470288",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "52"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"34-BQzM6Yzbqmt4fKJjsPYPu5yIrbw\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:56 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              101,
+              114,
+              114,
+              111,
+              114,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              82,
+              101,
+              99,
+              117,
+              114,
+              115,
+              111,
+              32,
+              110,
+              111,
+              32,
+              101,
+              110,
+              99,
+              111,
+              110,
+              116,
+              114,
+              97,
+              100,
+              111,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 7,
+          "responseSize": 52
+        },
+        "id": "c116a794-3dae-407c-8255-37523b44ea14",
+        "assertions": [
+          {
+            "assertion": "Status code es 404 Not Found",
+            "skipped": false
+          },
+          {
+            "assertion": "Respuesta consistente ante eliminación de recurso inexistente",
+            "skipped": false
+          }
+        ]
+      },
+      {
+        "cursor": {
+          "ref": "a4eb3fe5-23a5-48cd-b678-8273f572fb95",
+          "length": 16,
+          "cycles": 1,
+          "position": 15,
+          "iteration": 0,
+          "httpRequestId": "6ad0855d-9391-4eb0-a4eb-7698b7275194"
+        },
+        "item": {
+          "id": "96a4ef56-fbb2-4579-b770-d612d4482d81",
+          "name": "16 - Ruta No Registrada (404 Fail)",
+          "request": {
+            "url": {
+              "path": [
+                "api",
+                "v1",
+                "rutas-inexistentes"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "98923ff5-fe38-4bc1-8cdd-48535bb96a66",
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code es 404 Not Found', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Formato fail en ruta no registrada', function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql('fail');",
+                  "    pm.expect(json.message).to.include('no encontrada');",
+                  "});"
+                ],
+                "_lastExecutionId": "1019c4e9-6d18-4d6a-bd67-13667f2a2343"
+              }
+            }
+          ]
+        },
+        "request": {
+          "url": {
+            "protocol": "http",
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "rutas-inexistentes"
+            ],
+            "host": [
+              "localhost"
+            ],
+            "query": [],
+            "variable": []
+          },
+          "header": [
+            {
+              "key": "Accept",
+              "value": "application/json"
+            },
+            {
+              "key": "User-Agent",
+              "value": "PostmanRuntime/7.39.1",
+              "system": true
+            },
+            {
+              "key": "Cache-Control",
+              "value": "no-cache",
+              "system": true
+            },
+            {
+              "key": "Postman-Token",
+              "value": "9ced7557-a180-42fe-aedc-10ae75f8d5b7",
+              "system": true
+            },
+            {
+              "key": "Host",
+              "value": "localhost:3000",
+              "system": true
+            },
+            {
+              "key": "Accept-Encoding",
+              "value": "gzip, deflate, br",
+              "system": true
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive",
+              "system": true
+            }
+          ],
+          "method": "GET"
+        },
+        "response": {
+          "id": "b2a964d2-bbda-4529-bc3c-2855e518cdf0",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            {
+              "key": "Content-Security-Policy",
+              "value": "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Resource-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Origin-Agent-Cluster",
+              "value": "?1"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "no-referrer"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=15552000; includeSubDomains"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-DNS-Prefetch-Control",
+              "value": "off"
+            },
+            {
+              "key": "X-Download-Options",
+              "value": "noopen"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "SAMEORIGIN"
+            },
+            {
+              "key": "X-Permitted-Cross-Domain-Policies",
+              "value": "none"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "0"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "key": "Content-Length",
+              "value": "75"
+            },
+            {
+              "key": "ETag",
+              "value": "W/\"4b-kiMvf6N9iZferwx+0ZLUCk6YGHk\""
+            },
+            {
+              "key": "Date",
+              "value": "Wed, 28 Oct 2026 17:07:56 GMT"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            },
+            {
+              "key": "Keep-Alive",
+              "value": "timeout=5"
+            }
+          ],
+          "stream": {
+            "type": "Buffer",
+            "data": [
+              123,
+              34,
+              115,
+              116,
+              97,
+              116,
+              117,
+              115,
+              34,
+              58,
+              34,
+              102,
+              97,
+              105,
+              108,
+              34,
+              44,
+              34,
+              109,
+              101,
+              115,
+              115,
+              97,
+              103,
+              101,
+              34,
+              58,
+              34,
+              82,
+              117,
+              116,
+              97,
+              32,
+              47,
+              97,
+              112,
+              105,
+              47,
+              118,
+              49,
+              47,
+              114,
+              117,
+              116,
+              97,
+              115,
+              45,
+              105,
+              110,
+              101,
+              120,
+              105,
+              115,
+              116,
+              101,
+              110,
+              116,
+              101,
+              115,
+              32,
+              110,
+              111,
+              32,
+              101,
+              110,
+              99,
+              111,
+              110,
+              116,
+              114,
+              97,
+              100,
+              97,
+              34,
+              125
+            ]
+          },
+          "cookie": [],
+          "responseTime": 5,
+          "responseSize": 75
+        },
+        "id": "96a4ef56-fbb2-4579-b770-d612d4482d81",
+        "assertions": [
+          {
+            "assertion": "Status code es 404 Not Found",
+            "skipped": false
+          },
+          {
+            "assertion": "Formato fail en ruta no registrada",
+            "skipped": false
+          }
+        ]
+      }
+    ],
+    "transfers": {
+      "responseTotal": 1894
+    },
+    "failures": [],
+    "error": null
+  }
+}

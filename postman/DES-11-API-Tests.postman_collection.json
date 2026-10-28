@@ -1,0 +1,622 @@
+{
+  "info": {
+    "_postman_id": "c1f7b8e2-9b51-4f81-8b73-fa92b515a0c3",
+    "name": "DES-11 API Integration & Contract Tests",
+    "description": "Colección de pruebas automatizadas para la API REST de Inventario de Productos (DES-11). Incluye validaciones exhaustivas de contratos, códigos HTTP, tipos de contenido, reglas de negocio, casos positivos, negativos y consistencia de datos.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "productCategory",
+      "value": "Periféricos",
+      "type": "string"
+    },
+    {
+      "key": "created_product_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Content-Type es application/json', function () {",
+              "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+              "});",
+              "",
+              "pm.test('Respuesta tiene estructura válida de health check', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "    pm.expect(json.status).to.eql('success');",
+              "    pm.expect(json.message).to.eql('Servidor de Inventario activo');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "02 - Crear Producto Exitoso (201)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Content-Type es application/json', function () {",
+              "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+              "});",
+              "",
+              "pm.test('Contrato de respuesta y datos del producto creado', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.be.an('object');",
+              "    pm.expect(json.status).to.eql('success');",
+              "    pm.expect(json.data).to.be.an('object');",
+              "    pm.expect(json.data._id).to.be.a('string');",
+              "    pm.expect(json.data.name).to.eql('Teclado Mecánico RGB');",
+              "    pm.expect(json.data.category).to.eql(pm.collectionVariables.get('productCategory') || 'Periféricos');",
+              "    pm.expect(json.data.price).to.eql(250000);",
+              "    pm.expect(json.data.stock).to.eql(15);",
+              "    pm.expect(json.data.createdAt).to.be.a('string');",
+              "    pm.expect(json.data.updatedAt).to.be.a('string');",
+              "",
+              "    // Guardar ID en variables de colección y entorno para peticiones siguientes",
+              "    pm.collectionVariables.set('created_product_id', json.data._id);",
+              "    pm.environment.set('created_product_id', json.data._id);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Teclado Mecánico RGB\",\n  \"category\": \"{{productCategory}}\",\n  \"price\": 250000,\n  \"stock\": 15\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"]
+        }
+      }
+    },
+    {
+      "name": "03 - Crear Producto - Error de Validación Campos Obligatorios (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Estructura de error por campos faltantes', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('fail');",
+              "    pm.expect(json.message).to.eql('Datos de entrada inválidos');",
+              "    pm.expect(json.errors).to.be.an('array');",
+              "    pm.expect(json.errors.length).to.be.at.least(2);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"category\": \"Periféricos\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"]
+        }
+      }
+    },
+    {
+      "name": "04 - Crear Producto - Error Precio Negativo (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Mensaje de validación de precio negativo', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('fail');",
+              "    pm.expect(json.message).to.eql('Datos de entrada inválidos');",
+              "    pm.expect(json.errors).to.include('El precio no puede ser negativo');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Mouse Invalido\",\n  \"category\": \"Periféricos\",\n  \"price\": -50000,\n  \"stock\": 10\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"]
+        }
+      }
+    },
+    {
+      "name": "05 - Listar Todos los Productos (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Respuesta contiene lista y contador de resultados', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('success');",
+              "    pm.expect(json.results).to.be.a('number');",
+              "    pm.expect(json.results).to.be.at.least(1);",
+              "    pm.expect(json.data).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"]
+        }
+      }
+    },
+    {
+      "name": "06 - Listar Productos con Filtro de Categoría (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Todos los elementos devueltos coinciden con la categoría solicitada', function () {",
+              "    const json = pm.response.json();",
+              "    const category = pm.collectionVariables.get('productCategory') || 'Periféricos';",
+              "    pm.expect(json.status).to.eql('success');",
+              "    pm.expect(json.data).to.be.an('array');",
+              "    json.data.forEach(function (p) {",
+              "        pm.expect(p.category).to.eql(category);",
+              "    });",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products?category={{productCategory}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"],
+          "query": [
+            { "key": "category", "value": "{{productCategory}}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "07 - Consultar Producto por ID Exitoso (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Objeto retornado coincide con el ID creado', function () {",
+              "    const json = pm.response.json();",
+              "    const expectedId = pm.collectionVariables.get('created_product_id');",
+              "    pm.expect(json.status).to.eql('success');",
+              "    pm.expect(json.data).to.be.an('object');",
+              "    pm.expect(json.data._id).to.eql(expectedId);",
+              "    pm.expect(json.data.name).to.eql('Teclado Mecánico RGB');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/{{created_product_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "{{created_product_id}}"]
+        }
+      }
+    },
+    {
+      "name": "08 - Consultar Producto - Formato ID Inválido (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Mensaje de ID inválido en formato fail', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('fail');",
+              "    pm.expect(json.message).to.include('ID inválido: formato-invalido-123');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/formato-invalido-123",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "formato-invalido-123"]
+        }
+      }
+    },
+    {
+      "name": "09 - Consultar Producto - ID Inexistente (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 404 Not Found', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Mensaje de recurso no encontrado', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('error');",
+              "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/507f1f77bcf86cd799439011",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "507f1f77bcf86cd799439011"]
+        }
+      }
+    },
+    {
+      "name": "10 - Actualizar Producto Exitoso (200)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Valores actualizados reflejados en la respuesta', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('success');",
+              "    pm.expect(json.data.price).to.eql(275000);",
+              "    pm.expect(json.data.stock).to.eql(12);",
+              "    pm.expect(json.data.name).to.eql('Teclado Mecánico RGB Pro');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Teclado Mecánico RGB Pro\",\n  \"price\": 275000,\n  \"stock\": 12\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/{{created_product_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "{{created_product_id}}"]
+        }
+      }
+    },
+    {
+      "name": "11 - Actualizar Producto - Error Validación Stock Negativo (400)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 400 Bad Request', function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "pm.test('Mensaje de error por stock negativo', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('fail');",
+              "    pm.expect(json.errors).to.include('El stock no puede ser negativo');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stock\": -9\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/{{created_product_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "{{created_product_id}}"]
+        }
+      }
+    },
+    {
+      "name": "12 - Actualizar Producto - ID Inexistente (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 404 Not Found', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Respuesta de error 404 consistente', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('error');",
+              "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 100000\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/507f1f77bcf86cd799439011",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "507f1f77bcf86cd799439011"]
+        }
+      }
+    },
+    {
+      "name": "13 - Eliminar Producto Exitoso (204)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 204 No Content', function () {",
+              "    pm.response.to.have.status(204);",
+              "});",
+              "",
+              "pm.test('Cuerpo de respuesta está vacío según estándar 204', function () {",
+              "    pm.expect(pm.response.text()).to.eql('');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/{{created_product_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "{{created_product_id}}"]
+        }
+      }
+    },
+    {
+      "name": "14 - Consultar Producto Ya Eliminado (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 404 Not Found tras eliminación', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Confirma que el recurso fue realmente eliminado', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('error');",
+              "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/{{created_product_id}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "{{created_product_id}}"]
+        }
+      }
+    },
+    {
+      "name": "15 - Eliminar Producto Inexistente (404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 404 Not Found', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Respuesta consistente ante eliminación de recurso inexistente', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('error');",
+              "    pm.expect(json.message).to.eql('Recurso no encontrado');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/507f1f77bcf86cd799439011",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "507f1f77bcf86cd799439011"]
+        }
+      }
+    },
+    {
+      "name": "16 - Ruta No Registrada (404 Fail)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code es 404 Not Found', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Formato fail en ruta no registrada', function () {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('fail');",
+              "    pm.expect(json.message).to.include('no encontrada');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/rutas-inexistentes",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "rutas-inexistentes"]
+        }
+      }
+    }
+  ]
+}
+
